@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "798221847117",
+    "project_id": "telegram-7fdd9",
+    "storage_bucket": "telegram-7fdd9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:798221847117:android:7cdbc7f618b78d6d7aea04",
+        "android_client_info": {
+          "package_name": "khamroev.telegram"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLsWmLMUlwb3YE7AcSvptl4nYZFq83v6E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

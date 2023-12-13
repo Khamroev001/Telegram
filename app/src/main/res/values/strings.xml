@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Telegram</string>
+    <string name="client_id">798221847117-hagnt38chqkhqo6cfb0kbls73s78n2sh.apps.googleusercontent.com</string>
+    <string name="title_activity_contact">ContactActivity</string>
+</resources>
