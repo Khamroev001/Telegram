@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -53,6 +54,7 @@ class ContactActivity : ComponentActivity() {
                         mutableStateListOf(UserData())
                     }
 
+                    var user=UserData()
 
                     val reference = Firebase.database.reference.child("contact")
                     reference.addValueEventListener(object : ValueEventListener {
@@ -63,6 +65,10 @@ class ContactActivity : ComponentActivity() {
                                 val userData = it.getValue(UserData::class.java)
                                 if (userData != null && uid!= userData.uid) {
                                     userList.add(userData)
+                                    Log.d("URL", userData.photo.toString())
+                                }
+                                else{
+                                    user= userData!!
                                 }
                             }
 
@@ -86,6 +92,7 @@ class ContactActivity : ComponentActivity() {
                                         )
                                         i.putExtra("uid", uid)
                                         i.putExtra("useruid", it.uid)
+                                        i.putExtra("user",it)
                                         startActivity(i)
                                     },
                                 verticalAlignment = Alignment.CenterVertically
@@ -98,7 +105,7 @@ class ContactActivity : ComponentActivity() {
                                     placeholder = painterResource(R.drawable.logo),
                                     contentDescription = ("no image"),
                                     contentScale = ContentScale.Crop,
-                                    modifier = Modifier.clip(CircleShape)
+                                    modifier = Modifier.clip(CircleShape).size(30.dp)
                                 )
                                 Text(
                                     text = it.name ?: "",
@@ -113,4 +120,3 @@ class ContactActivity : ComponentActivity() {
             }
         }
     }
-

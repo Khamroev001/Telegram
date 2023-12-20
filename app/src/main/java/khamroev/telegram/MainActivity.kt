@@ -103,7 +103,7 @@ class MainActivity : ComponentActivity() {
                 if (task.isSuccessful){
                     val user=auth.currentUser
 
-                    val userData=UserData(user?.displayName, user?.uid, user?.photoUrl.toString())
+                    val userData=UserData(user?.displayName, user?.uid, user?.email ,user?.photoUrl.toString())
                     myRef.child("contact").child(user?.uid ?:"")
                         .setValue(userData)
                         .addOnSuccessListener {
