@@ -4,4 +4,5 @@
     <string name="title_activity_contact">ContactActivity</string>
     <string name="title_activity_splash">SplashActivity</string>
     <string name="title_activity_message">MessageActivity</string>
+    <string name="title_activity_profile">ProfileActivity</string>
 </resources>

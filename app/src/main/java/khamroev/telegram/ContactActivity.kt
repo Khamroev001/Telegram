@@ -5,27 +5,54 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,12 +76,15 @@ class ContactActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val uid = intent.getStringExtra("uid")
+                    val name = intent.getStringExtra("name")
 
                     val userList = remember {
                         mutableStateListOf(UserData())
                     }
 
-                    var user=UserData()
+                    var user= remember {
+                        mutableStateOf(UserData())
+                    }
 
                     val reference = Firebase.database.reference.child("contact")
                     reference.addValueEventListener(object : ValueEventListener {
@@ -65,10 +95,11 @@ class ContactActivity : ComponentActivity() {
                                 val userData = it.getValue(UserData::class.java)
                                 if (userData != null && uid!= userData.uid) {
                                     userList.add(userData)
-                                    Log.d("URL", userData.photo.toString())
-                                }
-                                else{
-                                    user= userData!!
+                                    Log.d("NAME", userData.name.toString())
+                                } else{
+                                    user.value= userData!!
+                                    Log.d("USER", userData.toString())
+                                    Log.d("USER", user.toString())
                                 }
                             }
 
@@ -78,6 +109,51 @@ class ContactActivity : ComponentActivity() {
                         }
 
                     })
+
+                    Column(Modifier.fillMaxSize()) {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .background(Color.LightGray)
+                            .height(50.dp)) {
+
+                        Image(painter = painterResource(id = R.drawable.back),
+                            contentDescription = null,
+                            Modifier
+                                .size(40.dp)
+                                .padding(horizontal = 6.dp)
+                                .align(Alignment.CenterVertically)
+                                .clickable {
+                                    onBackPressed()
+                                })
+
+                        Spacer(modifier = Modifier.width(10.dp))
+
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(user.value.photo)
+                                .crossfade(true)
+                                .build(),
+                            placeholder = painterResource(R.drawable.logo),
+                            contentDescription = ("no image"),
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .size(35.dp)
+                                .clickable{
+                         var intent=Intent(this@ContactActivity,ProfileActivity::class.java)
+                                          intent.putExtra("user",user.value)
+                                    startActivity(intent)
+                                          }
+                            , alignment = Alignment.Center
+                        )
+                        Text(
+                            text = user.value.name ?: "asdasdasd",
+                            Modifier.padding(start = 12.dp),
+                            fontSize = 22.sp
+                        )
+                    }
+
 
                     LazyColumn() {
                         items(userList) {
@@ -92,7 +168,7 @@ class ContactActivity : ComponentActivity() {
                                         )
                                         i.putExtra("uid", uid)
                                         i.putExtra("useruid", it.uid)
-                                        i.putExtra("user",it)
+                                        i.putExtra("user", it)
                                         startActivity(i)
                                     },
                                 verticalAlignment = Alignment.CenterVertically
@@ -105,7 +181,9 @@ class ContactActivity : ComponentActivity() {
                                     placeholder = painterResource(R.drawable.logo),
                                     contentDescription = ("no image"),
                                     contentScale = ContentScale.Crop,
-                                    modifier = Modifier.clip(CircleShape).size(30.dp)
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .size(30.dp)
                                 )
                                 Text(
                                     text = it.name ?: "",
@@ -115,8 +193,11 @@ class ContactActivity : ComponentActivity() {
                             }
                         }
                     }
+                    }
                 }
                 }
             }
         }
+
+
     }

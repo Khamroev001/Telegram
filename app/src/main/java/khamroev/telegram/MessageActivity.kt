@@ -140,8 +140,6 @@ class MessageActivity : ComponentActivity() {
                                     Modifier.padding(start = 12.dp),
                                     fontSize = 22.sp
                                 )
-
-
                             }
                             LazyColumn(
                                 Modifier
@@ -224,8 +222,7 @@ class MessageActivity : ComponentActivity() {
                                         .padding(horizontal = 6.dp)
                                         .align(Alignment.CenterVertically)
                                         .clickable {
-                                            val reference =
-                                                Firebase.database.reference.child("contact")
+                                            val reference =  Firebase.database.reference.child("contact")
                                             val key = reference.push().key.toString()
                                             text.value = TextFieldValue("")
                                             reference

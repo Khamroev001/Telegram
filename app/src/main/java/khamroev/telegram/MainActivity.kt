@@ -5,15 +5,26 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.Center
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.modifier.modifierLocalConsumer
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -48,8 +59,15 @@ class MainActivity : ComponentActivity() {
 
                     val mGoogleSignInClient= GoogleSignIn.getClient(this,gso)
 
+               Row(Modifier.fillMaxSize()) {
 
-                    Column {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .align(CenterVertically), horizontalAlignment = Alignment.CenterHorizontally){
+
+                        Image(painter = painterResource(id = R.drawable.logo), contentDescription = "", Modifier.size(160.dp))
+
                         Button(onClick =
                         { val signInIntent=mGoogleSignInClient.signInIntent
                             startActivityForResult(signInIntent,1)
@@ -63,10 +81,10 @@ class MainActivity : ComponentActivity() {
                             Text(text = "Sign Out")
                         }
 
-
                     }
 
 
+                }
 
 
 
@@ -88,7 +106,8 @@ class MainActivity : ComponentActivity() {
                 firebaseAuthWithGoogle(account.idToken)
             }catch (e:ApiException){
 
-                Log.d("TAG", "error  $e" )
+                Log.e("TAG", "Google sign-in failed with status code: ${e.statusCode}")
+                Log.d("TAG1", "ITARAMAN" )
             }
 
         }
@@ -109,6 +128,7 @@ class MainActivity : ComponentActivity() {
                         .addOnSuccessListener {
                             val i=Intent(this, ContactActivity::class.java)
                             i.putExtra("name",userData.name)
+                            i.putExtra("uid",userData.uid)
                             startActivity(i)
                         }
 

@@ -13,6 +13,11 @@
         android:theme="@style/Theme.Telegram"
         tools:targetApi="31">
         <activity
+            android:name=".ProfileActivity"
+            android:exported="false"
+            android:label="@string/title_activity_profile"
+            android:theme="@style/Theme.Telegram" />
+        <activity
             android:name=".MessageActivity"
             android:exported="false"
             android:label="@string/title_activity_message"
@@ -37,7 +42,7 @@
             android:name=".MainActivity"
             android:exported="false"
             android:label="@string/app_name"
-            android:theme="@style/Theme.Telegram"></activity>
+            android:theme="@style/Theme.Telegram" />
     </application>
 
 </manifest>
