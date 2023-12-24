@@ -4,6 +4,9 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -43,9 +46,14 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.database
 import com.google.firebase.firestore.auth.User
+import com.google.firebase.ktx.Firebase
 import khamroev.telegram.ui.theme.TelegramTheme
-
+import khamroev.telegram.utils.SharedPrefHelper
 @OptIn(ExperimentalMaterial3Api::class)
 class ProfileActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,16 +65,39 @@ class ProfileActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    var user= intent.getSerializableExtra("user") as UserData
+                    var sharedPrefHelper= SharedPrefHelper.getInstance(this)
 
-                    var name by remember { mutableStateOf(user.name) }
-                    var email by remember { mutableStateOf(user.email) }
+
+                    var user= sharedPrefHelper.getUser()
+
+                    var name by remember { mutableStateOf(user?.name) }
+                    var email by remember { mutableStateOf(user?.email) }
 
                     val gso= GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                         .requestIdToken(getString(R.string.client_id))
                         .requestEmail()
                         .build()
 
+                    val gotData = remember { mutableStateOf(false) }
+
+
+                    val userRef = Firebase.database.reference.child("contact").child(user?.uid!!)
+                    userRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            val u = snapshot.getValue(UserData::class.java)
+                            if (u != null){
+                                if (!gotData.value){
+                                    name = u.name!!
+                                    user = u
+                                    gotData.value = true
+                                }
+                            }
+                        }
+
+                        override fun onCancelled(error: DatabaseError) {
+                        }
+
+                    })
 
 
                     Column(
@@ -75,10 +106,19 @@ class ProfileActivity : ComponentActivity() {
                             .padding(16.dp),
                         Arrangement.spacedBy(6.dp)
                     ) {
+                        Image(painter = painterResource(id = R.drawable.back),
+                            contentDescription = null,
+                            Modifier
+                                .size(40.dp)
+                                .padding(horizontal = 6.dp)
+                                .align(Alignment.Start)
+                                .clickable{
+                                    onBackPressed()
+                                })
       Spacer(modifier = Modifier.height(120.dp))
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
-                                .data(user.photo)
+                                .data(user?.photo)
                                 .crossfade(true)
                                 .build(),
                             placeholder = painterResource(R.drawable.logo),
@@ -86,10 +126,10 @@ class ProfileActivity : ComponentActivity() {
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .clip(CircleShape)
-                                .size(100.dp)
+                                .size(120.dp)
                                 .align(Alignment.CenterHorizontally)
                         )
-
+                        Spacer(modifier = Modifier.height(10.dp))
                         // Text Fields
                         OutlinedTextField(
                             value = name.toString(),
@@ -102,26 +142,23 @@ class ProfileActivity : ComponentActivity() {
                                 imeAction = ImeAction.Next
                             )
                         )
-
-                        OutlinedTextField(
-                            value = email.toString(),
-                            onValueChange = { email = it },
-                            label = { Text("Email") },
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = email.toString(),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 8.dp),
-                            keyboardOptions = KeyboardOptions(
-                                imeAction = ImeAction.Next
-                            )
+                                .padding(bottom = 8.dp)
                         )
-
-
+                        Spacer(modifier = Modifier.height(10.dp))
 
                         // Update Button
                         Button(
                             onClick = {
-                                // Handle update button click
-                                // Implement logic to update user info
+
+
+                                userRef.child("name").setValue(name)
+                                gotData.value = false
+
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -132,12 +169,14 @@ class ProfileActivity : ComponentActivity() {
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Update")
                         }
-
+                        Spacer(modifier = Modifier.height(10.dp))
                         // Logout Button
                         Button(
                             onClick = {
                                 GoogleSignIn.getClient(this@ProfileActivity,gso).signOut()
+                                sharedPrefHelper.logOut()
                                 startActivity(Intent(this@ProfileActivity,MainActivity::class.java))
+
                             },
                             modifier = Modifier
                                 .fillMaxWidth()

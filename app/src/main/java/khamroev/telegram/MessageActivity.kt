@@ -10,12 +10,14 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -113,17 +115,25 @@ class MessageActivity : ComponentActivity() {
 
 
                         Column(Modifier.fillMaxSize()) {
-                            Row(Modifier.fillMaxWidth().background(LightGray)) {
-
-                                Image(painter = painterResource(id = R.drawable.back),
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color.LightGray)
+                                    .height(50.dp)
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.back),
                                     contentDescription = null,
-                                    Modifier
+                                    modifier = Modifier
                                         .size(40.dp)
                                         .padding(horizontal = 6.dp)
                                         .align(Alignment.CenterVertically)
-                                        .clickable{
+                                        .clickable {
                                             onBackPressed()
-                                        })
+                                        }
+                                )
+
+                                Spacer(modifier = Modifier.width(10.dp))
 
                                 AsyncImage(
                                     model = ImageRequest.Builder(LocalContext.current)
@@ -133,11 +143,17 @@ class MessageActivity : ComponentActivity() {
                                     placeholder = painterResource(R.drawable.logo),
                                     contentDescription = ("no image"),
                                     contentScale = ContentScale.Crop,
-                                    modifier = Modifier.clip(CircleShape).size(30.dp)
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .size(30.dp)
+                                        .align(Alignment.CenterVertically) // Align vertically to the center
                                 )
+
                                 Text(
                                     text = user.name ?: "asdasdasd",
-                                    Modifier.padding(start = 12.dp),
+                                    modifier = Modifier
+                                        .padding(start = 12.dp)
+                                        .align(Alignment.CenterVertically), // Align vertically to the center
                                     fontSize = 22.sp
                                 )
                             }
@@ -180,7 +196,7 @@ class MessageActivity : ComponentActivity() {
                                                 modifier = Modifier.align(Alignment.Start),
                                                 shape = RoundedCornerShape(28.dp),
                                                 colors = CardDefaults.cardColors(
-                                                    containerColor = Color.Blue
+                                                    containerColor = Color.LightGray
                                                 )
                                             ) {
                                                 Text(

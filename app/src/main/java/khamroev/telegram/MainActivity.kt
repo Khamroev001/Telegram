@@ -31,115 +31,146 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import khamroev.telegram.ui.theme.TelegramTheme
+import khamroev.telegram.utils.SharedPrefHelper
 
 class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
     val database= Firebase.database
     val myRef=database.reference
-
-    override fun onCreate(savedInstanceState: Bundle?) {
+   lateinit var sharedPrefHelper:SharedPrefHelper
+   override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            TelegramTheme {
-                // A surface container using the 'background' color from the theme
+       auth = FirebaseAuth.getInstance()
+
+       val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+           .requestIdToken(getString(R.string.client_id))
+           .requestEmail()
+           .build()
+
+       val mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
+
+       sharedPrefHelper=SharedPrefHelper.getInstance(this)
+
+
+
+       setContent {
+            TelegramTheme() {
+
+
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
 
-                    auth=FirebaseAuth.getInstance()
-
-                    val gso=GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                        .requestIdToken(getString(R.string.client_id))
-                        .requestEmail()
-                        .build()
-
-                    val mGoogleSignInClient= GoogleSignIn.getClient(this,gso)
-
-               Row(Modifier.fillMaxSize()) {
-
                     Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .align(CenterVertically), horizontalAlignment = Alignment.CenterHorizontally){
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
 
-                        Image(painter = painterResource(id = R.drawable.logo), contentDescription = "", Modifier.size(160.dp))
+                        Image(painter = painterResource(id = R.drawable.logo), contentDescription = "", modifier = Modifier.size(160.dp))
 
-                        Button(onClick =
-                        { val signInIntent=mGoogleSignInClient.signInIntent
-                            startActivityForResult(signInIntent,1)
+
+                        Button(onClick = {
+                            val signInIntent = mGoogleSignInClient.signInIntent
+                            startActivityForResult(signInIntent, 1)
                         }) {
                             Text(text = "Sign In Google")
                         }
+                        Button(onClick = {
+                            mGoogleSignInClient.signOut()
+                            sharedPrefHelper.logOut()
 
-                        Button(onClick =
-                        { mGoogleSignInClient.signOut()
                         }) {
                             Text(text = "Sign Out")
                         }
-
                     }
-
-
-                }
-
-
-
                 }
             }
         }
     }
-
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode==1){
-
-            val task=GoogleSignIn.getSignedInAccountFromIntent(data)
-
+        if (requestCode == 1) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             try {
-                val account=task.getResult(ApiException::class.java)
+
+                val account = task.getResult(ApiException::class.java)
                 firebaseAuthWithGoogle(account.idToken)
-            }catch (e:ApiException){
+                Log.d("TAG", "onActivityResult: ")
+            } catch (e: ApiException) {
+                Log.d("TAG", "error: $e")
 
-                Log.e("TAG", "Google sign-in failed with status code: ${e.statusCode}")
-                Log.d("TAG1", "ITARAMAN" )
             }
-
         }
-
     }
 
+    private fun firebaseAuthWithGoogle(idToken: String?) {
 
-    private fun firebaseAuthWithGoogle(idToken:String?){
-        val credential=GoogleAuthProvider.getCredential(idToken,null)
+
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
         auth.signInWithCredential(credential)
-            .addOnCompleteListener(this){ task->
-                if (task.isSuccessful){
-                    val user=auth.currentUser
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
 
-                    val userData=UserData(user?.displayName, user?.uid, user?.email ,user?.photoUrl.toString())
-                    myRef.child("contact").child(user?.uid ?:"")
-                        .setValue(userData)
-                        .addOnSuccessListener {
-                            val i=Intent(this, ContactActivity::class.java)
-                            i.putExtra("name",userData.name)
-                            i.putExtra("uid",userData.uid)
-                            startActivity(i)
+                    val user = auth.currentUser
+                    val userData = UserData(
+                        user?.displayName,
+                        user?.uid,
+                        user?.email,
+                        user?.photoUrl.toString()
+                    )
+                    val reference = Firebase.database.reference.child("contact")
+                    var status = true
+                    reference.addValueEventListener(object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            val children = snapshot.children
+                            children.forEach {
+                                val user = it.getValue(UserData::class.java)
+                                if (user != null && user.uid == userData.uid) {
+                                    status=false
+                                }
+                            }
+                            if(status){
+                                setUser(userData)
+                            }
+
+
+                        }
+                        override fun onCancelled(error: DatabaseError) {
+                            Log.d("TAG", "onCancelled: ${error.message}")
                         }
 
-            }else{
-                Log.d("TAG","error:Authenfication failed")
+                    })
+
+                    val i = Intent(this, ContactActivity::class.java)
+                    i.putExtra("uid", userData.uid)
+                    sharedPrefHelper.setUser(userData)
+                    startActivity(i)
+
+
+                } else {
+                    Log.d("TAG", "error: Authentication Failed.")
                 }
             }
-
-
     }
 
-
-
+    private fun setUser(userData: UserData) {
+        val userIdReference = Firebase.database.reference
+            .child("contact").child(userData.uid?:"")
+        userIdReference.setValue(userData).addOnSuccessListener {
+            val i = Intent(this, ContactActivity::class.java)
+            i.putExtra("uid", userData.uid)
+            sharedPrefHelper.setUser(userData)
+            startActivity(i)
+        }
+    }
 }

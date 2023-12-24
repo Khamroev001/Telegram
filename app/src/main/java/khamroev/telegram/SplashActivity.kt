@@ -31,9 +31,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
 import khamroev.telegram.ui.theme.TelegramTheme
+import khamroev.telegram.utils.SharedPrefHelper
 import kotlinx.coroutines.delay
 
 class SplashActivity : ComponentActivity() {
+    lateinit var sharedPrefHelper: SharedPrefHelper
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -43,7 +45,9 @@ class SplashActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                         AppContent(context = this)
+                    sharedPrefHelper=SharedPrefHelper.getInstance(this)
+
+                         AppContent(context = this, sharedPrefHelper.getUser())
                 }
             }
         }
@@ -51,13 +55,18 @@ class SplashActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppContent(context: Context) {
+fun AppContent(context: Context, userData: UserData?) {
     var navigateToHome by remember { mutableStateOf(false) }
 
 
     LaunchedEffect(navigateToHome) {
         delay(2000) // Wait for 3 seconds
-        gotoMain(context)
+        if (userData==null){
+            gotoMain(context)
+        }else{
+            gotoContacts(context)
+        }
+
     }
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -70,5 +79,9 @@ fun AppContent(context: Context) {
 }
 fun gotoMain(context: Context){
     val i = Intent(context,MainActivity::class.java)
+    startActivity(context,i,null)
+}
+fun gotoContacts(context: Context){
+    val i = Intent(context,ContactActivity::class.java)
     startActivity(context,i,null)
 }
