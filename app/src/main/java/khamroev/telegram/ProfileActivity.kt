@@ -2,6 +2,7 @@ package khamroev.telegram
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -158,7 +159,11 @@ class ProfileActivity : ComponentActivity() {
 
                                 userRef.child("name").setValue(name)
                                 gotData.value = false
-
+                                var shared_user=sharedPrefHelper.getUser()
+                                Log.d("BEFORE",shared_user.toString())
+                                var shared_changed_user=UserData(name,shared_user?.uid,shared_user?.email,shared_user?.photo)
+                                sharedPrefHelper.setUser(shared_changed_user)
+                                Log.d("AFTER",shared_changed_user.toString())
                             },
                             modifier = Modifier
                                 .fillMaxWidth()

@@ -56,11 +56,9 @@ class SplashActivity : ComponentActivity() {
 
 @Composable
 fun AppContent(context: Context, userData: UserData?) {
-    var navigateToHome by remember { mutableStateOf(false) }
 
-
-    LaunchedEffect(navigateToHome) {
-        delay(2000) // Wait for 3 seconds
+    LaunchedEffect(true) {
+        delay(2000)
         if (userData==null){
             gotoMain(context)
         }else{
